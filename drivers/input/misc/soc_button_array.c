@@ -234,9 +234,11 @@ static struct soc_button_info *soc_button_get_button_info(struct device *dev)
 	for (i = 0; (i + 1) < desc->package.count; i += 2) {
 		uuid = &desc->package.elements[i];
 
-		if (uuid->type != ACPI_TYPE_BUFFER || uuid->buffer.length != 16
-		    || desc->package.elements[i + 1].type != ACPI_TYPE_PACKAGE)
+		if (uuid->type != ACPI_TYPE_BUFFER ||
+		    uuid->buffer.length != 16 ||
+		    desc->package.elements[i + 1].type != ACPI_TYPE_PACKAGE) {
 			break;
+		}
 
 		if (memcmp(uuid->buffer.pointer, btns_desc_uuid, 16) == 0) {
 			btns_desc = &desc->package.elements[i + 1];
@@ -251,7 +253,8 @@ static struct soc_button_info *soc_button_get_button_info(struct device *dev)
 
 	/* The first package describes the collection */
 	el0 = &btns_desc->package.elements[0];
-	if (el0->type == ACPI_TYPE_PACKAGE && el0->package.count == 5 &&
+	if (el0->type == ACPI_TYPE_PACKAGE &&
+	    el0->package.count == 5 &&
 	    /* First byte should be 0 (collection) */
 	    soc_button_get_acpi_object_int(&el0->package.elements[0]) == 0 &&
 	    /* Third byte should be 0 (top level collection) */
@@ -317,9 +320,10 @@ static int soc_button_probe(struct platform_device *pdev)
 		button_info = (struct soc_button_info *)id->driver_data;
 	}
 
-	if (gpiod_count(dev, NULL) <= 0) {
+	error = gpiod_count(dev, NULL);
+	if (error < 0) {
 		dev_dbg(dev, "no GPIO attached, ignoring...\n");
-		return -ENODEV;
+		return error;
 	}
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);

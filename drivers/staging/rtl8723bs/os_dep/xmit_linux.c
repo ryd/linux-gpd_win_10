@@ -39,11 +39,7 @@ uint _rtw_pktfile_read (struct pkt_file *pfile, u8 *rmem, uint rlen)
 	len =  rtw_remainder_len(pfile);
 	len = (rlen > len)? len: rlen;
 
-<<<<<<< HEAD
-       if (rmem)
-=======
 	if (rmem)
->>>>>>> 94a6df251dd08c6436ebd6d10c68f03659148ce1
 		skb_copy_bits(pfile->pkt, pfile->buf_len-pfile->pkt_len, rmem, len);
 
 	pfile->cur_addr += len;

@@ -3407,7 +3407,7 @@ skl_plane_relative_data_rate(const struct intel_crtc_state *cstate,
 {
 	struct intel_plane *plane = to_intel_plane(pstate->plane);
 	struct intel_plane_state *intel_pstate = to_intel_plane_state(pstate);
-	unsigned int rotation = intel_plane_get_rotation(intel_pstate);
+	//unsigned int rotation = intel_plane_get_rotation(intel_pstate);
 	uint32_t down_scale_amount, data_rate;
 	uint32_t width = 0, height = 0;
 	struct drm_framebuffer *fb;
@@ -3490,6 +3490,31 @@ skl_get_total_relative_data_rate(struct intel_crtc_state *intel_cstate,
 	}
 
 	return total_data_rate;
+}
+
+static inline unsigned int
+intel_plane_get_rotation(const struct intel_plane_state *plane_state)
+{
+	unsigned int rotation = plane_state->base.rotation;
+	unsigned int new_rotation = DRM_ROTATE_0;
+	struct intel_crtc *intel_crtc;
+
+	if (!plane_state->base.crtc)
+		return rotation;
+
+	/* We only support an initial rotation of DRM_ROTATE_180 for now */
+	intel_crtc = to_intel_crtc(plane_state->base.crtc);
+	if (intel_crtc->initial_rotation != DRM_ROTATE_180)
+		return rotation;
+
+	switch (rotation & DRM_ROTATE_MASK) {
+	case DRM_ROTATE_0:	new_rotation = DRM_ROTATE_180;	break;
+	case DRM_ROTATE_90:	new_rotation = DRM_ROTATE_270;	break;
+	case DRM_ROTATE_180:	new_rotation = DRM_ROTATE_0;	break;
+	case DRM_ROTATE_270:	new_rotation = DRM_ROTATE_90;	break;
+	}
+
+	return (rotation & ~DRM_ROTATE_MASK) | new_rotation;
 }
 
 static uint16_t
@@ -8484,3 +8509,4 @@ u64 intel_rc6_residency_us(struct drm_i915_private *dev_priv,
 	intel_runtime_pm_put(dev_priv);
 	return DIV_ROUND_UP_ULL(time_hw * units, div);
 }
+

@@ -224,7 +224,8 @@ static int gm12u320fb_create(struct drm_fb_helper *helper,
 	return ret;
 
 out_destroy_fbi:
-	drm_fb_helper_release_fbi(helper);
+	drm_fb_helper_unregister_fbi(&fbdev->helper);
+	drm_fb_helper_unlink_fbi(helper);
 out_gfree:
 	drm_gem_object_unreference_unlocked(&fbdev->fb.obj->base);
 out:
@@ -242,7 +243,7 @@ static void gm12u320_fbdev_destroy(struct drm_device *dev,
 	fb_deferred_io_cleanup(fbdev->helper.fbdev);
 #endif
 	drm_fb_helper_unregister_fbi(&fbdev->helper);
-	drm_fb_helper_release_fbi(&fbdev->helper);
+	drm_fb_helper_unlink_fbi(&fbdev->helper);
 	drm_fb_helper_fini(&fbdev->helper);
 	drm_framebuffer_unregister_private(&fbdev->fb.base);
 	drm_framebuffer_cleanup(&fbdev->fb.base);

@@ -87,7 +87,7 @@ static const struct drm_crtc_helper_funcs gm12u320_helper_funcs = {
 static const struct drm_crtc_funcs gm12u320_crtc_funcs = {
 	.set_config = drm_crtc_helper_set_config,
 	.destroy = gm12u320_crtc_destroy,
-	.page_flip = gm12u320_crtc_page_flip,
+//	.page_flip = gm12u320_crtc_page_flip,
 };
 
 static int gm12u320_crtc_init(struct drm_device *dev)

@@ -2073,6 +2073,32 @@ unsigned int intel_rotation_info_size(const struct intel_rotation_info *rot_info
 	return size;
 }
 
+static inline unsigned int
+intel_plane_get_rotation(const struct intel_plane_state *plane_state)
+{
+	unsigned int rotation = plane_state->base.rotation;
+	unsigned int new_rotation = DRM_ROTATE_0;
+	struct intel_crtc *intel_crtc;
+
+	if (!plane_state->base.crtc)
+		return rotation;
+
+	/* We only support an initial rotation of DRM_ROTATE_180 for now */
+	intel_crtc = to_intel_crtc(plane_state->base.crtc);
+	if (intel_crtc->initial_rotation != DRM_ROTATE_180)
+		return rotation;
+
+	switch (rotation & DRM_ROTATE_MASK) {
+	case DRM_ROTATE_0:	new_rotation = DRM_ROTATE_180;	break;
+	case DRM_ROTATE_90:	new_rotation = DRM_ROTATE_270;	break;
+	case DRM_ROTATE_180:	new_rotation = DRM_ROTATE_0;	break;
+	case DRM_ROTATE_270:	new_rotation = DRM_ROTATE_90;	break;
+	}
+
+	return (rotation & ~DRM_ROTATE_MASK) | new_rotation;
+}
+
+
 static void
 intel_fill_fb_ggtt_view(struct i915_ggtt_view *view,
 			const struct drm_framebuffer *fb,

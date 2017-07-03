@@ -1,5 +1,6 @@
 /*
  * MFD core driver for Intel Cherrytrail Whiskey Cove PMIC
+ *
  * Copyright (C) 2017 Hans de Goede <hdegoede@redhat.com>
  *
  * Based on various non upstream patches to support the CHT Whiskey Cove PMIC:
@@ -57,8 +58,7 @@ static struct mfd_cell cht_wc_dev[] = {
 		.name = "cht_wcove_pwrsrc",
 		.num_resources = ARRAY_SIZE(cht_wc_pwrsrc_resources),
 		.resources = cht_wc_pwrsrc_resources,
-	},
-	{
+	}, {
 		.name = "cht_wcove_ext_chgr",
 		.num_resources = ARRAY_SIZE(cht_wc_ext_charger_resources),
 		.resources = cht_wc_ext_charger_resources,
@@ -159,7 +159,7 @@ static int cht_wc_probe(struct i2c_client *client,
 	}
 	if (client->irq < 0) {
 		dev_err(dev, "Invalid IRQ\n");
-		return -ENODEV;
+		return -EINVAL;
 	}
 
 	pmic = devm_kzalloc(dev, sizeof(*pmic), GFP_KERNEL);
@@ -198,6 +198,7 @@ static int __maybe_unused cht_wc_suspend(struct device *dev)
 	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
 
 	disable_irq(pmic->irq);
+
 	return 0;
 }
 
@@ -206,9 +207,9 @@ static int __maybe_unused cht_wc_resume(struct device *dev)
 	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
 
 	enable_irq(pmic->irq);
+
 	return 0;
 }
-
 static SIMPLE_DEV_PM_OPS(cht_wc_pm_ops, cht_wc_suspend, cht_wc_resume);
 
 static const struct i2c_device_id cht_wc_i2c_id[] = {

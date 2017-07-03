@@ -3791,6 +3791,7 @@ static int skl_compute_plane_wm(const struct drm_i915_private *dev_priv,
 				bool *enabled /* out */)
 {
 	struct intel_plane *plane = to_intel_plane(intel_pstate->base.plane);
+	unsigned int rotation = intel_plane_get_rotation(intel_pstate);
 	struct drm_plane_state *pstate = &intel_pstate->base;
 	struct drm_framebuffer *fb = pstate->fb;
 	uint32_t latency = dev_priv->wm.skl_latency[level];

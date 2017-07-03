@@ -3608,11 +3608,12 @@ static const struct dmi_system_id dmi_platform_gpd_win[] = {
 	{
 		/*
 		 * Match for the GPDwin which unfortunately uses somewhat
-		 * generic dmi strings, which is why the bios-date match is
-		 * included and we need multiple entries :| These strings have
-		 * been checked against 6 other byt/cht boards and board_vendor
-		 * and board_name are unique to the GPDwin (in the test set)
-		 * where as only one other board has the same board_version.
+		 * generic dmi strings, which is why we test for 4 strings.
+		 * Comparing against 23 other byt/cht boards, board_vendor
+		 * and board_name are unique to the GPDwin, where as only one
+		 * other board has the same board_serial and 3 others have
+		 * the same default product_name. Also the GPDwin is the
+		 * only device to have both board_ and product_name not set.
 		 */
 		.ident = "GPD Win",
 		.matches = {
@@ -3695,6 +3696,8 @@ static int rt5645_i2c_probe(struct i2c_client *i2c,
 		rt5645_parse_dt(rt5645, &i2c->dev);
 	else if (dmi_check_system(dmi_platform_intel_braswell))
 		rt5645->pdata = general_platform_data;
+	else if (dmi_check_system(dmi_platform_gpd_win))
+		rt5645->pdata = gpd_win_platform_data;
 
 	rt5645->gpiod_hp_det = devm_gpiod_get_optional(&i2c->dev, "hp-detect",
 						       GPIOD_IN);
@@ -3932,6 +3935,7 @@ static int rt5645_i2c_remove(struct i2c_client *i2c)
 
 	cancel_delayed_work_sync(&rt5645->jack_detect_work);
 	cancel_delayed_work_sync(&rt5645->rcclock_work);
+	del_timer_sync(&rt5645->btn_check_timer);
 
 	snd_soc_unregister_codec(&i2c->dev);
 	regulator_bulk_disable(ARRAY_SIZE(rt5645->supplies), rt5645->supplies);

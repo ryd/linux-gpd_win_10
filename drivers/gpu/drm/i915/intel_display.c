@@ -2997,7 +2997,7 @@ static u32 i9xx_plane_ctl(const struct intel_crtc_state *crtc_state,
 		to_i915(plane_state->base.plane->dev);
 	struct intel_crtc *crtc = to_intel_crtc(crtc_state->base.crtc);
 	const struct drm_framebuffer *fb = plane_state->base.fb;
-	unsigned int rotation = plane_state->base.rotation;
+	unsigned int rotation = intel_plane_get_rotation(plane_state);
 	u32 dspcntr;
 
 	dspcntr = DISPLAY_PLANE_ENABLE | DISPPLANE_GAMMA_ENABLE;
@@ -3072,7 +3072,7 @@ int i9xx_check_plane_surface(struct intel_plane_state *plane_state)
 
 	/* HSW/BDW do this automagically in hardware */
 	if (!IS_HASWELL(dev_priv) && !IS_BROADWELL(dev_priv)) {
-		unsigned int rotation = plane_state->base.rotation;
+		unsigned int rotation = intel_plane_get_rotation(plane_state);
 		int src_w = drm_rect_width(&plane_state->base.src) >> 16;
 		int src_h = drm_rect_height(&plane_state->base.src) >> 16;
 
@@ -3360,7 +3360,7 @@ static void skylake_update_primary_plane(struct drm_plane *plane,
 	enum plane_id plane_id = to_intel_plane(plane)->id;
 	enum pipe pipe = to_intel_plane(plane)->pipe;
 	u32 plane_ctl = plane_state->ctl;
-	unsigned int rotation = plane_state->base.rotation;
+	unsigned int rotation = intel_plane_get_rotation(plane_state);
 	u32 stride = skl_plane_stride(fb, 0, rotation);
 	u32 surf_addr = plane_state->main.offset;
 	int scaler_id = plane_state->scaler_id;
@@ -9285,7 +9285,7 @@ static u32 i9xx_cursor_ctl(const struct intel_crtc_state *crtc_state,
 		return 0;
 	}
 
-	if (plane_state->base.rotation & DRM_ROTATE_180)
+	if (intel_plane_get_rotation(plane_state) & DRM_ROTATE_180)
 		cntl |= CURSOR_ROTATE_180;
 
 	return cntl;
@@ -13229,9 +13229,12 @@ intel_prepare_plane_fb(struct drm_plane *plane,
 				return ret;
 			}
 		} else {
+			unsigned int rotation;
 			struct i915_vma *vma;
 
-			vma = intel_pin_and_fence_fb_obj(fb, new_state->rotation);
+			rotation = intel_plane_get_rotation(
+					to_intel_plane_state(new_state));
+			vma = intel_pin_and_fence_fb_obj(fb, rotation);
 			if (IS_ERR(vma)) {
 				DRM_DEBUG_KMS("failed to pin object\n");
 				return PTR_ERR(vma);

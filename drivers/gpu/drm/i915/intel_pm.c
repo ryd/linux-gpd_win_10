@@ -3492,31 +3492,6 @@ skl_get_total_relative_data_rate(struct intel_crtc_state *intel_cstate,
 	return total_data_rate;
 }
 
-static inline unsigned int
-intel_plane_get_rotation(const struct intel_plane_state *plane_state)
-{
-	unsigned int rotation = plane_state->base.rotation;
-	unsigned int new_rotation = DRM_ROTATE_0;
-	struct intel_crtc *intel_crtc;
-
-	if (!plane_state->base.crtc)
-		return rotation;
-
-	/* We only support an initial rotation of DRM_ROTATE_180 for now */
-	intel_crtc = to_intel_crtc(plane_state->base.crtc);
-	if (intel_crtc->initial_rotation != DRM_ROTATE_180)
-		return rotation;
-
-	switch (rotation & DRM_ROTATE_MASK) {
-	case DRM_ROTATE_0:	new_rotation = DRM_ROTATE_180;	break;
-	case DRM_ROTATE_90:	new_rotation = DRM_ROTATE_270;	break;
-	case DRM_ROTATE_180:	new_rotation = DRM_ROTATE_0;	break;
-	case DRM_ROTATE_270:	new_rotation = DRM_ROTATE_90;	break;
-	}
-
-	return (rotation & ~DRM_ROTATE_MASK) | new_rotation;
-}
-
 static uint16_t
 skl_ddb_min_alloc(const struct drm_plane_state *pstate,
 		  const int y)
@@ -3795,7 +3770,6 @@ static int skl_compute_plane_wm(const struct drm_i915_private *dev_priv,
 	struct drm_plane_state *pstate = &intel_pstate->base;
 	struct drm_framebuffer *fb = pstate->fb;
 	uint32_t latency = dev_priv->wm.skl_latency[level];
-	unsigned int rotation = intel_plane_get_rotation(intel_pstate);
 	uint_fixed_16_16_t method1, method2;
 	uint_fixed_16_16_t plane_blocks_per_line;
 	uint_fixed_16_16_t selected_result;
